@@ -6,12 +6,14 @@ package adt.json
 
 sealed trait Shape {
 
+  def shapeToJson: JsonAble[Shape] = Shape.shapeToJson
+
   def toJson: Json = Shape.shapeToJson.toJson(this)
 }
 
 object Shape {
 
-  val shapeToJson: JsonAble[Shape] = new JsonAble[Shape] {
+  implicit val shapeToJson: JsonAble[Shape] = new JsonAble[Shape] {
     override def toJson(value: Shape): Json =
       value match {
         case c@Circle(_) => Circle.circleToJson.toJson(c)
@@ -53,10 +55,15 @@ trait JsonAble[A] {
 
 object JsonAble {
 
-  def listToJson[A](writer: JsonAble[A]): JsonAble[List[A]] = new JsonAble[List[A]] {
+  def jsonify[A](value: A)(implicit jsonAble: JsonAble[A]): Json =
+    jsonAble.toJson(value)
+
+  implicit def listToJson[A](implicit writer: JsonAble[A]): JsonAble[List[A]] = new JsonAble[List[A]] {
     override def toJson(list: List[A]): Json =
       JsonArray(list.map(writer.toJson(_)))
   }
+
+
 
 }
 
@@ -127,7 +134,10 @@ object Main extends App {
   )
 
   val shapeList: List[Shape] = List(Circle(1), Circle(2), Circle(3), Rect(3, 4))
-  val jsonShapeArray: Json = JsonAble.listToJson(Shape.shapeToJson).toJson(shapeList)
+  val hj: Json = JsonAble.jsonify(shapeList)
+  println(hj)
+
+  val jsonShapeArray: Json = JsonAble.listToJson[Shape].toJson(shapeList)
 
   val jsonShapes: Json = JsonObject(Map("shapes" -> jsonShapeArray))
 
