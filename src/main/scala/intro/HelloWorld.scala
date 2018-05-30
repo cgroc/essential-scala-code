@@ -3,19 +3,26 @@ package intro
 import scala.io.StdIn._
 
 object HelloWorld {
+
+  final case class UserPrompt(message: String)
+
+  final case class UserName(name: String)
+
+  final case class UserGreeting(message: String)
+
   val message = "Hello world!"
 
-  val promptUserString: String => Unit = prompt => print(prompt)
+  val promptUserString: UserPrompt => Unit = prompt => print(prompt.message)
 
-  val getName: Unit => String = _ => readLine
+  val getName: Unit => UserName = _ => UserName(readLine)
 
-  val makeGreeting: String => String = name => s"Hello $name"
+  val makeGreeting: UserName => UserGreeting = userName => UserGreeting(s"Hello ${userName.name}")
 
-  val printGreeting: String => Unit = greeting => println(greeting)
+  val printGreeting: UserGreeting => Unit = greeting => println(greeting.message)
 
-  val promptForNameAndPrintGreeting: String => Unit = promptUserString andThen getName andThen makeGreeting andThen printGreeting
+  val promptForNameAndPrintGreeting: UserPrompt => Unit = promptUserString andThen getName andThen makeGreeting andThen printGreeting
 
   def main(args: Array[String]): Unit = {
-    promptForNameAndPrintGreeting("Please enter your name")
+    promptForNameAndPrintGreeting(UserPrompt("Please enter your name: "))
   }
 }
