@@ -17,9 +17,9 @@ final case class Film(
 )
 
 object TestData {
-  val memento           = new Film("Memento", 2000, 8.5)
-  val darkKnight        = new Film("Dark Knight", 2008, 9.0)
-  val inception         = new Film("Inception", 2010, 8.8)
+  private val memento           = new Film("Memento", 2000, 8.5)
+  private val darkKnight        = new Film("Dark Knight", 2008, 9.0)
+  private val inception         = new Film("Inception", 2010, 8.8)
 
   val highPlainsDrifter = new Film("High Plains Drifter", 1973, 7.7)
   val outlawJoseyWales  = new Film("The Outlaw Josey Wales", 1976, 7.9)
@@ -51,34 +51,45 @@ object TestMethods {
   import TestData.directors
 
   def directorsWithBackCatalogOfSize(numberOfFilms: Int): List[Director] =
-    ???
+    directors.filter(d => d.films.size >= numberOfFilms)
 
   def directorsBornBefore(year: Int): List[Director] =
-    ???
+    directors.filter(d => d.yearOfBirth < year)
 
   def directorsBornBeforeWithBackCatalogOfSize(year: Int, numberOfFilms: Int): List[Director] =
-    ???
+    directorsBornBefore(year).intersect(directorsWithBackCatalogOfSize(numberOfFilms)) // Oooh! inefficient! Better to reuse the comparisonfunctions!
 
   def namesOfAllFilmsByAllDirectors: List[String] =
-    ???
+    for {
+      d <- directors
+      f <- d.films
+    } yield f.name
 
   def namesOfFilmsByNolan: List[String] =
-    ???
+    for {
+      d <- directors.filter(dr => (dr.firstName == "Christopher" && dr.lastName == "Nolan"))
+      f <- d.films
+    } yield f.name
 
-  def averageImdbRating: Double =
-    ???
+  def averageImdbRating: Double = {
+    val allFilms = for { // look at the spec file! You don't actually need to do a for comp, a simple flatMap will work
+      d <- directors
+      f <- d.films
+    } yield f
+    allFilms.map(_.imdbRating).sum / allFilms.length
+  }
 
   def directorsSortedByAge(ascending: Boolean = true): List[Director] =
-    ???
+    directors.sortWith((d1, d2) => if(ascending) d1.yearOfBirth < d2.yearOfBirth else d1.yearOfBirth > d2.yearOfBirth)
 
   def allFilmsSortedByImdb: List[Film] =
-    ???
+    directors.flatMap(_.films).sortWith(_.imdbRating > _.imdbRating)
 
   def earliestFilmByAnyDirector: Option[Film] =
-    ???
+    directors.flatMap(_.films).sortWith(_.yearOfRelease < _.yearOfRelease).headOption
 
   def earliestFilmsByAllDirectors: Map[Director, Option[Film]] =
-    ???
+    directors.map(d => (d, d.films.sortBy(_.yearOfRelease).headOption)).toMap
 }
 
 object Main extends App {

@@ -49,19 +49,22 @@ object Rect {
 }
 
 trait JsonAble[A] {
-
   def toJson(value: A): Json
 }
 
 object JsonAble {
-
   def jsonify[A](value: A)(implicit jsonAble: JsonAble[A]): Json =
     jsonAble.toJson(value)
 
-  implicit def listToJson[A](implicit writer: JsonAble[A]): JsonAble[List[A]] = new JsonAble[List[A]] {
-    override def toJson(list: List[A]): Json =
-      JsonArray(list.map(writer.toJson(_)))
-  }
+  def pure[A](func: A => Json): JsonAble[A] =
+    new JsonAble[A] {
+      def toJson(value: A): Json =
+        func(value)
+    }
+
+
+  implicit def listToJson[A](implicit writer: JsonAble[A]): JsonAble[List[A]] =
+    pure(list => JsonArray(list.map(writer.toJson(_))))
 
 
 
